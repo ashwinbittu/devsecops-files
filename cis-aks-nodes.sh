@@ -17,8 +17,13 @@ do
   yq -i '.spec.template.spec.nodeName = env(nodeName)' kubebench-aks-$nodeName.yaml
   kubectl create -f kubebench-aks-$nodeName.yaml
   sleep 30s
-  #kubectl logs $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep kube-bench-node) > $nodeName-kube-sec.logs
-  kubectl logs $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep kube-bench) > $nodeName-kube-sec.logs
+  #kubectl logs $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep kube-bench-node) > $nodeName-kube-sebenchc.log
+  kubectl logs $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep kube-bench) > $nodeName-kube-bench.log
+  echo "#################################################"
+  echo "AKS Worker Node - $nodeName --- Kube-Bench Output"
+  echo "#################################################"
+  cat $nodeName-kube-bench.log
+  echo "#################################################"
   kubectl delete job kube-bench
 
 done
