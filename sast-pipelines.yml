@@ -1,0 +1,84 @@
+trigger:
+- main
+
+#resources:
+# pipelines:
+# - pipeline: RestofInfra_Create_Pipeline_Trigger
+#   source: RestofInfra_Create_Pipeline
+#   project: terraform-azure-aks
+#   trigger: true
+
+pool:
+  name: Default
+  demands:
+   - agent.name -equals ado-agent1-vm 
+
+variables:
+
+- group: all_variables
+
+stages:
+- stage: BuildTestPushStage
+  displayName: Build The App, Perform Tests & Push Image to Registry
+  jobs:  
+  - job: BuildTestPushJob
+    displayName: Build The App, Perform Tests & Push Image to Registry
+    steps:
+    - checkout: self    
+    - task: CmdLine@2
+      displayName: Download Other GIT Repos
+      inputs:
+        script: |
+          git clone https://$(personal_access_token)@dev.azure.com/ashwinbittu/terraform-azure-aks/_git/trackerapp-k8s-manifests
+          git clone https://$(personal_access_token)@dev.azure.com/ashwinbittu/terraform-azure-aks/_git/trackerapp-code
+    - task: trivy@1
+      displayName: Trivy Scan Dockerfile Images
+      inputs:
+        version: 'latest'
+        debug: true
+        image: 'tomcat:latest'
+        severities: 'CRITICAL,HIGH'       
+    - task: CmdLine@2
+      displayName: OPA Conftest Scan
+      inputs:
+        script: |
+          echo 'Starting Conftest Scan'          
+          #Commented to visit later
+          #ls -rtl
+          docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy devsecops_files/opa-docker-security.rego Dockerfile
+    
+    #COMMENTING AS ITS ONLY VALID FOR PLAIN K8S CLUSTERS, AKS/EKS/GKE MASTERS ARE MANAGED BY CORRESPODING PUBLIC CLOUD SERVICES
+    # - task: CmdLine@2
+    #   displayName: K8S CIS Benchmark - Master
+    #   inputs:
+    #     script: |
+    #       echo 'Starting K8S CIS Benchmark for Master'          
+    #       devsecops_files/cis-master.sh
+    # - task: CmdLine@2
+    #   displayName: K8S CIS Benchmark - Etcd
+    #   inputs:
+    #     script: |
+    #       echo 'Starting K8S CIS Benchmark for Etcd'          
+    #       cis-etcd.sh
+    - task: CmdLine@2
+      displayName: K8S CIS Benchmark - Kubelet For Worker Nodes
+      inputs:
+        script: |
+          #sh devsecops_files/cis-aks-nodes.sh
+    - task: CmdLine@2
+      displayName: OPA Conftest Scan
+      inputs:
+        script: |
+          echo 'Starting OPA Scan for K8s Manifests'          
+          # docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy devsecops_files/opa-k8s-security.rego trackerapp-k8s-manifests/base-manifests/mysql-clusterip-service.yaml
+          # docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy devsecops_files/opa-k8s-security.rego trackerapp-k8s-manifests/base-manifests/mysql-deployment.yaml
+          # docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy devsecops_files/opa-k8s-security.rego trackerapp-k8s-manifests/base-manifests/persistent-volume-claim.yaml
+          # docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy devsecops_files/opa-k8s-security.rego trackerapp-k8s-manifests/base-manifests/UserManagement-ConfigMap.yaml
+          # docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy devsecops_files/opa-k8s-security.rego trackerapp-k8s-manifests/base-manifests/UserMgmtWebApp-Deployment.yaml
+          # docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy devsecops_files/opa-k8s-security.rego trackerapp-k8s-manifests/base-manifests/UserMgmtWebApp-Service.yaml
+    - task: CmdLine@2
+      displayName: Kubesec Scan
+      inputs:
+        script: |
+          echo 'Starting Kubesec Scan'          
+          #sh devsecops_files/kubesec-scan.sh

@@ -1,0 +1,45 @@
+trigger:
+- main
+
+#resources:
+# pipelines:
+# - pipeline: Deploy_App_Pipeline_Trigger
+#   source: Deploy_App_Pipeline
+#   project: terraform-azure-aks
+#   trigger: true
+
+pool:
+  name: Default
+  demands:
+   - agent.name -equals ado-agent1-vm 
+
+variables:
+
+- group: all_variables
+
+stages:
+- stage: BuildTestPushStage
+  displayName: Build The App, Perform Tests & Push Image to Registry
+  jobs:  
+  - job: BuildTestPushJob
+    displayName: Build The App, Perform Tests & Push Image to Registry
+    steps:
+    - checkout: self    
+    - task: CmdLine@2
+      displayName: Download Other GIT Repos
+      inputs:
+        script: |
+          git clone https://$(personal_access_token)@dev.azure.com/ashwinbittu/terraform-azure-aks/_git/trackerapp-k8s-manifests
+          git clone https://$(personal_access_token)@dev.azure.com/ashwinbittu/terraform-azure-aks/_git/trackerapp-code
+    - task: CmdLine@2
+      displayName: OWASP ZAP - DAST Scan
+      inputs:
+        script: |
+          echo 'Starting OWASP ZAP - DAST Scan'          
+          sh devsecops_files/zap.sh       
+    - task: PublishPipelineArtifact@1
+      displayName: Publish OWASP ZAP Report
+      inputs:
+        targetPath: '$(Build.Repository.LocalPath)/owasp-zap-report'
+        artifact: 'zap_report.html'
+        publishLocation: 'pipeline'
