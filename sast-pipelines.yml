@@ -1,12 +1,12 @@
 trigger:
 - main
 
-resources:
-  pipelines:
-  - pipeline: TrackerApp-AKS-Infra-Create-Rest_Trigger
-    source: TrackerApp-AKS-Infra-Create-Rest
-    project: trackerappaks
-    trigger: true
+#resources:
+#  pipelines:
+#  - pipeline: TrackerApp-AKS-Infra-Create-Rest_Trigger
+#    source: TrackerApp-AKS-Infra-Create-Rest
+#    project: trackerappaks
+#    trigger: true
 
 pool:
   name: Default
