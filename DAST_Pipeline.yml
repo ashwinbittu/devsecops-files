@@ -5,7 +5,7 @@ trigger:
 # pipelines:
 # - pipeline: Deploy_App_Pipeline_Trigger
 #   source: Deploy_App_Pipeline
-#   project: terraform-azure-aks
+#   project: trackerappaks
 #   trigger: true
 
 pool:
@@ -18,11 +18,11 @@ variables:
 - group: all_variables
 
 stages:
-- stage: BuildTestPushStage
-  displayName: Build The App, Perform Tests & Push Image to Registry
+- stage: DASTOWASPZAP
+  displayName: OWASP ZAP - DAST Scan
   jobs:  
-  - job: BuildTestPushJob
-    displayName: Build The App, Perform Tests & Push Image to Registry
+  - job: DASTOWASPZAPJob
+    displayName: OWASP ZAP - DAST Scan
     steps:
     - checkout: self    
     - task: CmdLine@2
@@ -36,7 +36,7 @@ stages:
       inputs:
         script: |
           echo 'Starting OWASP ZAP - DAST Scan'          
-          sh devsecops_files/zap.sh       
+          sh zap.sh       
     - task: PublishPipelineArtifact@1
       displayName: Publish OWASP ZAP Report
       inputs:
