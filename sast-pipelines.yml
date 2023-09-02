@@ -5,7 +5,7 @@ resources:
   pipelines:
   - pipeline: TrackerApp-AKS-Infra-Create-Rest_Trigger
     source: TrackerApp-AKS-Infra-Create-Rest
-    project: trackerappaks
+    project: trackeraks
     trigger: true
 
 pool:
