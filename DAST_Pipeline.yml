@@ -5,7 +5,7 @@ trigger:
 # pipelines:
 # - pipeline: Deploy_App_Pipeline_Trigger
 #   source: Deploy_App_Pipeline
-#   project: trackerappaks
+#   project: trackeraks
 #   trigger: true
 
 pool:
