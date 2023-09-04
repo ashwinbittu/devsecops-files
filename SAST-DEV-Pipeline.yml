@@ -15,7 +15,7 @@ pool:
 
 variables:
 
-- group: all_variables
+- group: dev_variables
 
 stages:
 - stage: DownloadScanFiles
